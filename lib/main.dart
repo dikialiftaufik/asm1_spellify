@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'screens/main_game_screen.dart';
 
 void main() {
-  // Memastikan binding Flutter sudah siap sebelum aplikasi berjalan
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const SpellifyApp());
 }
@@ -14,13 +13,12 @@ class SpellifyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Spellify',
-      debugShowCheckedModeBanner:
-          false, // Menghilangkan pita "DEBUG" di pojok kanan atas
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueAccent),
+        // Skema warna ungu tua/biru keunguan yang elegan
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF231F7B)),
         useMaterial3: true,
       ),
-      // Layar pertama yang dimuat saat aplikasi dibuka
       home: const MainGameScreen(),
     );
   }
