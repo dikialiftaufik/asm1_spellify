@@ -1,3 +1,5 @@
+// Lokasi: lib/state/game_state.dart
+
 import 'package:flutter/foundation.dart';
 import '../models/word_model.dart';
 import '../services/asset_service.dart';
@@ -14,8 +16,6 @@ class GameState extends ChangeNotifier {
   bool _isLoading = false;
   bool _isGameOver = false;
   bool _hasStarted = false;
-
-  // Menunggu pengguna menekan tombol "Lanjut" setelah jawaban salah
   bool _isWaitingForNext = false;
 
   int get lives => _lives;
@@ -73,15 +73,12 @@ class GameState extends ChangeNotifier {
     if (sanitizedInput == correctWord) {
       _calculateScore();
 
-      // Feedback Audio saat jawaban benar
-      await _ttsService.speak("That is correct!");
-
       if (_currentWordIndex < _sessionWords.length - 1) {
         _currentWordIndex++;
         notifyListeners();
 
-        // Jeda untuk memberi waktu audio "That is correct" selesai berbicara
-        await Future.delayed(const Duration(milliseconds: 2000));
+        // Jeda dipangkas dari 2000ms menjadi 1000ms karena tidak ada audio benar yang harus ditunggu
+        await Future.delayed(const Duration(milliseconds: 1000));
         await playCurrentWord();
       } else {
         _isGameOver = true;
@@ -99,7 +96,6 @@ class GameState extends ChangeNotifier {
         notifyListeners();
         await _ttsService.speak("Game Over. Thank you for playing.");
       } else {
-        // Jika masih ada nyawa, masuk ke state menunggu
         _isWaitingForNext = true;
         notifyListeners();
         await _ttsService.spellIncorrectWord(currentWord!.word);
@@ -108,7 +104,6 @@ class GameState extends ChangeNotifier {
     }
   }
 
-  // Fungsi baru untuk dipanggil saat tombol "Next Word" ditekan
   Future<void> advanceToNextWord() async {
     if (_isWaitingForNext) {
       _isWaitingForNext = false;
@@ -118,6 +113,18 @@ class GameState extends ChangeNotifier {
         await playCurrentWord();
       }
     }
+  }
+
+  // Fungsi baru untuk mengulang permainan dari awal (menghindari Dead-End)
+  Future<void> restartGame() async {
+    _currentWordIndex = 0;
+    _lives = 3;
+    _score = 0;
+    _isGameOver = false;
+    _isWaitingForNext = false;
+
+    // Langsung panggil startGame agar JSON diacak ulang dan game dimulai
+    await startGame();
   }
 
   void _calculateScore() {

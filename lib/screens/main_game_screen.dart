@@ -14,6 +14,8 @@ class _MainGameScreenState extends State<MainGameScreen> {
   final FocusNode _focusNode = FocusNode();
   Color _flashColor = Colors.transparent;
 
+  final Color _primaryColor = const Color(0xFF231F7B);
+
   @override
   void dispose() {
     _textController.dispose();
@@ -26,7 +28,7 @@ class _MainGameScreenState extends State<MainGameScreen> {
     final String input = _textController.text;
     if (input.isEmpty) return;
 
-    _focusNode.unfocus(); // Turunkan keyboard setelah submit
+    _focusNode.unfocus();
     bool isCorrect = await _gameState.checkSpelling(input);
     _textController.clear();
     _triggerFlash(
@@ -40,7 +42,6 @@ class _MainGameScreenState extends State<MainGameScreen> {
     if (mounted) setState(() => _flashColor = Colors.transparent);
   }
 
-  // Widget khusus untuk merender nyawa berbentuk kapsul elegan
   Widget _buildLivesIndicator() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -49,16 +50,87 @@ class _MainGameScreenState extends State<MainGameScreen> {
         (index) => AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           margin: const EdgeInsets.symmetric(horizontal: 4),
-          width: 40,
+          width: 32,
           height: 6,
           decoration: BoxDecoration(
             color: index < _gameState.lives
-                ? Colors.blueAccent
+                ? _primaryColor
                 : Colors.grey.shade300,
             borderRadius: BorderRadius.circular(4),
           ),
         ),
       ),
+    );
+  }
+
+  void _showJuryAssistanceMenu() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              vertical: 24.0,
+              horizontal: 24.0,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 24),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const Text(
+                  'Jury Assistance',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 24),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: CircleAvatar(
+                    backgroundColor: _primaryColor.withOpacity(0.1),
+                    child: Icon(Icons.menu_book_rounded, color: _primaryColor),
+                  ),
+                  title: const Text(
+                    'May I have the definition?',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _gameState.playDefinition();
+                  },
+                ),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: CircleAvatar(
+                    backgroundColor: _primaryColor.withOpacity(0.1),
+                    child: Icon(
+                      Icons.chat_bubble_rounded,
+                      color: _primaryColor,
+                    ),
+                  ),
+                  title: const Text(
+                    'Can you use it in a sentence?',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _gameState.playContext();
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -69,7 +141,11 @@ class _MainGameScreenState extends State<MainGameScreen> {
       appBar: AppBar(
         title: const Text(
           'Spellify',
-          style: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 1.2),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.0,
+            color: Colors.black87,
+          ),
         ),
         centerTitle: true,
         elevation: 0,
@@ -81,271 +157,134 @@ class _MainGameScreenState extends State<MainGameScreen> {
             listenable: _gameState,
             builder: (context, child) {
               if (_gameState.isLoading) {
-                return const Center(child: CircularProgressIndicator());
+                return Center(
+                  child: CircularProgressIndicator(color: _primaryColor),
+                );
               }
 
-              // Layar Welcome Screen sebelum game dimulai
+              // --- WELCOME SCREEN ---
               if (!_gameState.hasStarted) {
-                return Center(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24.0,
-                      vertical: 48.0,
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // Logo Lingkaran dengan dekorasi ubin B dan S
-                        Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Container(
-                              width: 150,
-                              height: 150,
-                              decoration: const BoxDecoration(
-                                color: Color(
-                                  0xFF231F7B,
-                                ), // Warna ungu tua sesuai referensi
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.mic,
-                                size: 70,
-                                color: Colors.white,
-                              ),
-                            ),
-                            // Ubin dekoratif
-                            Positioned(
-                              top: 20,
-                              right: 0,
-                              child: _buildDecorativeTile("S"),
-                            ),
-                            Positioned(
-                              bottom: 20,
-                              left: 0,
-                              child: _buildDecorativeTile("B"),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 48),
-                        const Text(
-                          'Welcome to Spellify',
-                          style: TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          'Test your spelling skills and become the ultimate champion!',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.grey, fontSize: 16),
-                        ),
-                        const SizedBox(height: 60),
+                return _buildWelcomeScreen();
+              }
 
-                        // Bagian Informasi Visual: LISTEN, SPELL, WIN
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 24.0,
-                            horizontal: 16.0,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade100,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              _buildInfoItem(
-                                Icons.headset_mic_rounded,
-                                "LISTEN",
-                              ),
-                              _buildInfoItem(Icons.keyboard_rounded, "SPELL"),
-                              _buildInfoItem(Icons.emoji_events_rounded, "WIN"),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 60),
+              // --- GAME OVER SCREEN ---
+              if (_gameState.isGameOver) {
+                return _buildGameOverScreen();
+              }
 
-                        // Tombol Start Game dengan ikon panah
-                        SizedBox(
-                          width: double.infinity,
-                          height: 60,
-                          child: ElevatedButton(
-                            onPressed: () => _gameState.startGame(),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(
-                                0xFF231F7B,
-                              ), // Warna ungu tua
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
+              // --- ACTIVE GAMEPLAY SCREEN ---
+              return Column(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24.0,
+                        vertical: 16.0,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 12,
                             ),
-                            child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade50,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: Colors.grey.shade200),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  'Start Game',
+                                  'Word ${_gameState.currentWordNumber} of ${_gameState.totalWords}',
                                   style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.grey.shade600,
                                   ),
                                 ),
-                                SizedBox(width: 12),
-                                Icon(Icons.arrow_forward_rounded, size: 24),
+                                Text(
+                                  'Score: ${_gameState.score}',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: _primaryColor,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }
-
-              if (_gameState.isGameOver) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'Game Over',
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Final Score: ${_gameState.score}',
-                        style: const TextStyle(fontSize: 24),
-                      ),
-                    ],
-                  ),
-                );
-              }
-
-              // Arsitektur layout yang memisahkan konten atas dan input bawah (anti-overflow keyboard)
-              return Column(
-                children: [
-                  // AREA ATAS (Dapat di-scroll jika layar kecil)
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(24.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Word ${_gameState.currentWordNumber}/${_gameState.totalWords}',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.grey.shade700,
-                                ),
-                              ),
-                              Text(
-                                'Score: ${_gameState.score}',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 24),
                           _buildLivesIndicator(),
-                          const SizedBox(height: 80),
-
-                          // Tombol putar ulang suara utama
-                          Center(
-                            child: InkWell(
-                              onTap: () => _gameState.playCurrentWord(),
-                              borderRadius: BorderRadius.circular(50),
-                              child: Container(
-                                padding: const EdgeInsets.all(24),
-                                decoration: BoxDecoration(
-                                  color: Colors.blue.shade50,
-                                  shape: BoxShape.circle,
+                          const SizedBox(height: 60),
+                          GestureDetector(
+                            onTap: () => _gameState.playCurrentWord(),
+                            child: Container(
+                              width: 120,
+                              height: 120,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: _primaryColor.withOpacity(0.05),
+                                border: Border.all(
+                                  color: _primaryColor.withOpacity(0.2),
+                                  width: 2,
                                 ),
-                                child: const Icon(
-                                  Icons.volume_up_rounded,
-                                  size: 48,
-                                  color: Colors.blueAccent,
+                              ),
+                              child: Center(
+                                child: Container(
+                                  width: 80,
+                                  height: 80,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: _primaryColor,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: _primaryColor.withOpacity(0.3),
+                                        blurRadius: 16,
+                                        offset: const Offset(0, 8),
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Icon(
+                                    Icons.volume_up_rounded,
+                                    size: 40,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                          const SizedBox(height: 16),
-                          const Center(
-                            child: Text(
-                              'Tap to hear the word',
-                              style: TextStyle(color: Colors.grey),
+                          const SizedBox(height: 24),
+                          const Text(
+                            'Tap to hear the word',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                           const SizedBox(height: 48),
-
                           ActionChip(
-                            avatar: const Icon(Icons.help_outline, size: 18),
-                            label: const Text('Jury Assistance'),
-                            onPressed: () {
-                              showModalBottomSheet(
-                                context: context,
-                                builder: (context) {
-                                  return SafeArea(
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(24.0),
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          const Text(
-                                            'Jury Assistance',
-                                            style: TextStyle(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 24),
-                                          ListTile(
-                                            leading: const Icon(
-                                              Icons.book,
-                                              color: Colors.blueAccent,
-                                            ),
-                                            title: const Text(
-                                              'May I have the definition?',
-                                              style: TextStyle(fontSize: 16),
-                                            ),
-                                            onTap: () {
-                                              Navigator.pop(context);
-                                              _gameState.playDefinition();
-                                            },
-                                          ),
-                                          ListTile(
-                                            leading: const Icon(
-                                              Icons.chat_bubble_outline,
-                                              color: Colors.blueAccent,
-                                            ),
-                                            title: const Text(
-                                              'Can you use it in a sentence?',
-                                              style: TextStyle(fontSize: 16),
-                                            ),
-                                            onTap: () {
-                                              Navigator.pop(context);
-                                              _gameState.playContext();
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                },
-                              );
-                            },
-                            backgroundColor: Colors.grey.shade100,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            avatar: Icon(
+                              Icons.help_outline_rounded,
+                              size: 20,
+                              color: _primaryColor,
+                            ),
+                            label: const Text(
+                              'Jury Assistance',
+                              style: TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                            onPressed: _showJuryAssistanceMenu,
+                            backgroundColor: Colors.white,
+                            side: BorderSide(color: Colors.grey.shade300),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(30),
                             ),
                           ),
                         ],
@@ -353,125 +292,28 @@ class _MainGameScreenState extends State<MainGameScreen> {
                     ),
                   ),
 
-                  // AREA BAWAH (Sticky / Menempel di atas keyboard)
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, -5),
+                          color: Colors.black.withOpacity(0.03),
+                          blurRadius: 20,
+                          offset: const Offset(0, -10),
                         ),
                       ],
                     ),
-                    // viewInsets.bottom mendeteksi tinggi keyboard secara otomatis
                     padding: EdgeInsets.only(
                       left: 24,
                       right: 24,
-                      top: 16,
+                      top: 20,
                       bottom: MediaQuery.of(context).viewInsets.bottom > 0
                           ? MediaQuery.of(context).viewInsets.bottom + 16
-                          : 32, // Padding normal jika keyboard ditutup
+                          : MediaQuery.of(context).padding.bottom + 24,
                     ),
                     child: _gameState.isWaitingForNext
-                        // TAMPILAN JIKA SALAH (Menunggu pengguna lanjut)
-                        ? Column(
-                            children: [
-                              const Text(
-                                'Incorrect Spelling',
-                                style: TextStyle(
-                                  color: Colors.red,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              SizedBox(
-                                width: double.infinity,
-                                height: 56,
-                                child: ElevatedButton(
-                                  onPressed: () =>
-                                      _gameState.advanceToNextWord(),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.orange,
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                  ),
-                                  child: const Text(
-                                    'Next Word',
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          )
-                        // TAMPILAN NORMAL (Input TextField)
-                        : Column(
-                            children: [
-                              TextField(
-                                controller: _textController,
-                                focusNode: _focusNode,
-                                autocorrect: false,
-                                enableSuggestions: false,
-                                keyboardType: TextInputType.text,
-                                textInputAction: TextInputAction.done,
-                                onSubmitted: (_) => _submitAnswer(),
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  fontSize: 24,
-                                  letterSpacing: 3.0,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                decoration: InputDecoration(
-                                  hintText: 'Type here...',
-                                  hintStyle: TextStyle(
-                                    letterSpacing: 0,
-                                    color: Colors.grey.shade400,
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                    borderSide: const BorderSide(
-                                      color: Colors.blueAccent,
-                                      width: 2,
-                                    ),
-                                  ),
-                                  filled: true,
-                                  fillColor: Colors.grey.shade50,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              SizedBox(
-                                width: double.infinity,
-                                height: 56,
-                                child: ElevatedButton(
-                                  onPressed: _submitAnswer,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.blueAccent,
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                  ),
-                                  child: const Text(
-                                    'Submit',
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
+                        ? _buildIncorrectState()
+                        : _buildInputState(),
                   ),
                 ],
               );
@@ -488,45 +330,336 @@ class _MainGameScreenState extends State<MainGameScreen> {
     );
   }
 
-  // Widget pembantu untuk membangun ubin dekoratif
+  Widget _buildInputState() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        TextField(
+          controller: _textController,
+          focusNode: _focusNode,
+          autocorrect: false,
+          enableSuggestions: false,
+          keyboardType: TextInputType.text,
+          textInputAction: TextInputAction.done,
+          onSubmitted: (_) => _submitAnswer(),
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 28,
+            letterSpacing: 4.0,
+            fontWeight: FontWeight.bold,
+          ),
+          decoration: InputDecoration(
+            hintText: 'Type here...',
+            hintStyle: TextStyle(
+              letterSpacing: 0,
+              color: Colors.grey.shade300,
+              fontSize: 18,
+            ),
+            contentPadding: const EdgeInsets.symmetric(vertical: 20),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: _primaryColor, width: 2),
+            ),
+            filled: true,
+            fillColor: Colors.grey.shade100,
+          ),
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          width: double.infinity,
+          height: 60,
+          child: ElevatedButton(
+            onPressed: _submitAnswer,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _primaryColor,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
+              elevation: 0,
+            ),
+            child: const Text(
+              'Submit Spelling',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildIncorrectState() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Colors.red.shade50,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            children: [
+              Icon(
+                Icons.error_outline_rounded,
+                color: Colors.red.shade400,
+                size: 32,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Incorrect Spelling',
+                style: TextStyle(
+                  color: Colors.red.shade700,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          width: double.infinity,
+          height: 60,
+          child: ElevatedButton(
+            onPressed: () => _gameState.advanceToNextWord(),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.black87,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
+              elevation: 0,
+            ),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Next Word',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(width: 8),
+                Icon(Icons.arrow_forward_rounded, size: 20),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // --- KOMPONEN WELCOME SCREEN (DIPERBARUI) ---
+  Widget _buildWelcomeScreen() {
+    // Menggunakan SafeArea dan MainAxisAlignment.spaceEvenly agar menyesuaikan viewport
+    // secara dinamis tanpa memerlukan scroll
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                Container(
+                  width: 140,
+                  height: 140,
+                  decoration: BoxDecoration(
+                    color: _primaryColor,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.mic_rounded,
+                    size: 60,
+                    color: Colors.white,
+                  ),
+                ),
+                Positioned(top: 10, right: 0, child: _buildDecorativeTile("S")),
+                Positioned(
+                  bottom: 10,
+                  left: 0,
+                  child: _buildDecorativeTile("B"),
+                ),
+              ],
+            ),
+
+            Column(
+              children: [
+                const Text(
+                  'Welcome to\nSpellify',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 32,
+                    height: 1.2,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Test your spelling skills and\nbecome the ultimate champion!',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey, fontSize: 16),
+                ),
+              ],
+            ),
+
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 24.0),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildInfoItem(Icons.headset_mic_rounded, "LISTEN"),
+                  _buildInfoItem(Icons.keyboard_rounded, "SPELL"),
+                  _buildInfoItem(Icons.emoji_events_rounded, "WIN"),
+                ],
+              ),
+            ),
+
+            SizedBox(
+              width: double.infinity,
+              height: 60,
+              child: ElevatedButton(
+                onPressed: () => _gameState.startGame(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _primaryColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Start Game',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    Icon(Icons.play_arrow_rounded, size: 24),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // --- KOMPONEN GAME OVER SCREEN (DIPERBARUI) ---
+  Widget _buildGameOverScreen() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.workspace_premium_rounded,
+              size: 100,
+              color: const Color(0xFFFFD54F),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Game Over!',
+              style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Final Score: ${_gameState.score}',
+              style: TextStyle(
+                fontSize: 20,
+                color: Colors.grey.shade700,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 48),
+
+            // Tombol Play Again yang baru
+            SizedBox(
+              width: double.infinity,
+              height: 60,
+              child: ElevatedButton(
+                onPressed: () => _gameState.restartGame(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _primaryColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Play Again',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    Icon(Icons.replay_rounded, size: 24),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildDecorativeTile(String letter) {
     return Container(
       width: 40,
       height: 40,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: const Color(0xFFFFD54F), // Warna kuning sesuai referensi
-        borderRadius: BorderRadius.circular(8),
+        color: const Color(0xFFFFD54F),
+        borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Text(
         letter,
         style: const TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-          color: Colors.black,
+          fontSize: 22,
+          fontWeight: FontWeight.w900,
+          color: Colors.black87,
         ),
       ),
     );
   }
 
-  // Widget pembantu untuk membangun item informasi visual (Listen, Spell, Win)
   Widget _buildInfoItem(IconData icon, String label) {
     return Column(
       children: [
-        Icon(icon, size: 36, color: Colors.black54),
+        Icon(icon, size: 32, color: Colors.black87),
         const SizedBox(height: 8),
         Text(
           label,
           style: const TextStyle(
             fontSize: 12,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 1.0,
             color: Colors.black54,
           ),
         ),
