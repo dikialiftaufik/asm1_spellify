@@ -453,10 +453,8 @@ class _MainGameScreenState extends State<MainGameScreen> {
     );
   }
 
-  // --- KOMPONEN WELCOME SCREEN (DIPERBARUI) ---
+  // --- KOMPONEN WELCOME SCREEN ---
   Widget _buildWelcomeScreen() {
-    // Menggunakan SafeArea dan MainAxisAlignment.spaceEvenly agar menyesuaikan viewport
-    // secara dinamis tanpa memerlukan scroll
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
@@ -558,25 +556,36 @@ class _MainGameScreenState extends State<MainGameScreen> {
     );
   }
 
-  // --- KOMPONEN GAME OVER SCREEN (DIPERBARUI) ---
+  // --- KOMPONEN GAME OVER SCREEN (DIPERBARUI DINAMIS) ---
   Widget _buildGameOverScreen() {
+    // Cek apakah pengguna menang (masih punya nyawa) atau kalah (nyawa habis)
+    bool isVictory = _gameState.lives > 0;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // Ikon Dinamis: Piala Emas jika menang, Hati Patah Merah jika kalah
             Icon(
-              Icons.workspace_premium_rounded,
+              isVictory ? Icons.emoji_events_rounded : Icons.heart_broken,
               size: 100,
-              color: const Color(0xFFFFD54F),
+              color: isVictory ? const Color(0xFFFFD54F) : Colors.red.shade400,
             ),
             const SizedBox(height: 24),
-            const Text(
-              'Game Over!',
-              style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900),
+
+            // Teks Dinamis: Champion vs Game Over
+            Text(
+              isVictory ? 'Champion!' : 'Game Over',
+              style: TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.w900,
+                color: isVictory ? _primaryColor : Colors.black87,
+              ),
             ),
             const SizedBox(height: 16),
+
             Text(
               'Final Score: ${_gameState.score}',
               style: TextStyle(
@@ -587,7 +596,7 @@ class _MainGameScreenState extends State<MainGameScreen> {
             ),
             const SizedBox(height: 48),
 
-            // Tombol Play Again yang baru
+            // Tombol Play Again
             SizedBox(
               width: double.infinity,
               height: 60,

@@ -1,5 +1,3 @@
-// Lokasi: lib/state/game_state.dart
-
 import 'package:flutter/foundation.dart';
 import '../models/word_model.dart';
 import '../services/asset_service.dart';
@@ -77,36 +75,48 @@ class GameState extends ChangeNotifier {
         _currentWordIndex++;
         notifyListeners();
 
-        // Jeda dipangkas dari 2000ms menjadi 1000ms karena tidak ada audio benar yang harus ditunggu
-        await Future.delayed(const Duration(milliseconds: 1000));
-        await playCurrentWord();
+        // PERBAIKAN: Menghapus keyword 'await' dan menggunakan Future.delayed
+        // sebagai 'Fire-and-Forget'. Fungsi tidak akan tertahan di sini dan
+        // akan langsung me-return 'true' ke UI seketika!
+        Future.delayed(const Duration(milliseconds: 1000), () {
+          playCurrentWord();
+        });
       } else {
         _isGameOver = true;
         notifyListeners();
-        await _ttsService.speak(
+        _ttsService.speak(
           "Congratulations! You are the Spelling Bee Champion!",
         );
       }
-      return true;
+      return true; // Eksekusi langsung ke sini untuk memicu kedip hijau UI
     } else {
       _lives--;
 
       if (_lives <= 0) {
         _isGameOver = true;
         notifyListeners();
-        await _ttsService.speak("Game Over. Thank you for playing.");
+        _ttsService.speak("Game Over. Thank you for playing.");
       } else {
         _isWaitingForNext = true;
         notifyListeners();
-        await _ttsService.spellIncorrectWord(currentWord!.word);
+
+        // PERBAIKAN: Menghapus keyword 'await'.
+        // Juri akan mengeja di background, sementara kode langsung turun
+        // ke baris berikutnya untuk me-return 'false' ke UI seketika!
+        _ttsService.spellIncorrectWord(currentWord!.word);
       }
-      return false;
+      return false; // Eksekusi langsung ke sini untuk memicu kedip merah UI
     }
   }
 
   Future<void> advanceToNextWord() async {
     if (_isWaitingForNext) {
       _isWaitingForNext = false;
+
+      // PERBAIKAN: Hentikan suara paksa jika pengguna menekan tombol
+      // "Next Word" saat juri masih sibuk mengeja.
+      await _ttsService.stop();
+
       if (_currentWordIndex < _sessionWords.length - 1) {
         _currentWordIndex++;
         notifyListeners();
@@ -115,24 +125,24 @@ class GameState extends ChangeNotifier {
     }
   }
 
-  // Fungsi baru untuk mengulang permainan dari awal (menghindari Dead-End)
   Future<void> restartGame() async {
+    await _ttsService.stop(); // Pastikan tidak ada sisa suara sebelum restart
     _currentWordIndex = 0;
     _lives = 3;
     _score = 0;
     _isGameOver = false;
     _isWaitingForNext = false;
 
-    // Langsung panggil startGame agar JSON diacak ulang dan game dimulai
     await startGame();
   }
 
   void _calculateScore() {
-    if (_currentWordIndex < 10) {
+    // Mode Demo (4 Kata)
+    if (_currentWordIndex == 0) {
       _score += 100;
-    } else if (_currentWordIndex < 20) {
+    } else if (_currentWordIndex == 1) {
       _score += 200;
-    } else if (_currentWordIndex < 29) {
+    } else if (_currentWordIndex == 2) {
       _score += 300;
     } else {
       _score += 500;

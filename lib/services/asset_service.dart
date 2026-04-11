@@ -45,9 +45,10 @@ class AssetService {
     final List<WordModel> sessionWords = [];
 
     // Mengambil kata secara berurutan lalu menggabungkannya ke dalam satu sesi
-    sessionWords.addAll(await getRandomWords('beginner.json', 10));
-    sessionWords.addAll(await getRandomWords('intermediate.json', 10));
-    sessionWords.addAll(await getRandomWords('advanced.json', 9));
+    // DEMO MODE (diubah setelah selesai asesmen)
+    sessionWords.addAll(await getRandomWords('beginner.json', 1));
+    sessionWords.addAll(await getRandomWords('intermediate.json', 1));
+    sessionWords.addAll(await getRandomWords('advanced.json', 1));
     sessionWords.addAll(await getRandomWords('championship.json', 1));
 
     return sessionWords;
