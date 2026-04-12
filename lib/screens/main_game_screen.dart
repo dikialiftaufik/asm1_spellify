@@ -53,13 +53,24 @@ class _MainGameScreenState extends State<MainGameScreen> {
           width: 32,
           height: 6,
           decoration: BoxDecoration(
-            color: index < _gameState.lives
-                ? _primaryColor
-                : Colors.grey.shade300,
+            color: index < _gameState.lives ? _primaryColor : Colors.grey.shade300,
             borderRadius: BorderRadius.circular(4),
           ),
         ),
       ),
+    );
+  }
+
+  // Helper: Membuat item ListTile untuk menu Jury Assistance
+  Widget _buildJuryTile(IconData icon, String title, VoidCallback onTap) {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: CircleAvatar(
+        backgroundColor: _primaryColor.withOpacity(0.1),
+        child: Icon(icon, color: _primaryColor),
+      ),
+      title: Text(title, style: const TextStyle(fontSize: 16)),
+      onTap: onTap,
     );
   }
 
@@ -72,16 +83,12 @@ class _MainGameScreenState extends State<MainGameScreen> {
       builder: (context) {
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              vertical: 24.0,
-              horizontal: 24.0,
-            ),
+            padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 24.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: 40,
-                  height: 4,
+                  width: 40, height: 4,
                   margin: const EdgeInsets.only(bottom: 24),
                   decoration: BoxDecoration(
                     color: Colors.grey.shade300,
@@ -93,44 +100,49 @@ class _MainGameScreenState extends State<MainGameScreen> {
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 24),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: CircleAvatar(
-                    backgroundColor: _primaryColor.withOpacity(0.1),
-                    child: Icon(Icons.menu_book_rounded, color: _primaryColor),
-                  ),
-                  title: const Text(
-                    'May I have the definition?',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _gameState.playDefinition();
-                  },
-                ),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: CircleAvatar(
-                    backgroundColor: _primaryColor.withOpacity(0.1),
-                    child: Icon(
-                      Icons.chat_bubble_rounded,
-                      color: _primaryColor,
-                    ),
-                  ),
-                  title: const Text(
-                    'Can you use it in a sentence?',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _gameState.playContext();
-                  },
-                ),
+                _buildJuryTile(Icons.menu_book_rounded, 'May I have the definition?', () {
+                  Navigator.pop(context);
+                  _gameState.playDefinition();
+                }),
+                _buildJuryTile(Icons.chat_bubble_rounded, 'Can you use it in a sentence?', () {
+                  Navigator.pop(context);
+                  _gameState.playContext();
+                }),
               ],
             ),
           ),
         );
       },
+    );
+  }
+
+  // Helper: Membuat tombol utama yang dipakai di banyak tempat
+  Widget _buildPrimaryButton({
+    required String label,
+    required IconData icon,
+    required VoidCallback onPressed,
+    Color? backgroundColor,
+  }) {
+    return SizedBox(
+      width: double.infinity,
+      height: 60,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: backgroundColor ?? _primaryColor,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+          elevation: 0,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(label, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(width: 12),
+            Icon(icon, size: 24),
+          ],
+        ),
+      ),
     );
   }
 
@@ -141,11 +153,7 @@ class _MainGameScreenState extends State<MainGameScreen> {
       appBar: AppBar(
         title: const Text(
           'Spellify',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.0,
-            color: Colors.black87,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.0, color: Colors.black87),
         ),
         centerTitle: true,
         elevation: 0,
@@ -157,20 +165,14 @@ class _MainGameScreenState extends State<MainGameScreen> {
             listenable: _gameState,
             builder: (context, child) {
               if (_gameState.isLoading) {
-                return Center(
-                  child: CircularProgressIndicator(color: _primaryColor),
-                );
+                return Center(child: CircularProgressIndicator(color: _primaryColor));
               }
 
               // --- WELCOME SCREEN ---
-              if (!_gameState.hasStarted) {
-                return _buildWelcomeScreen();
-              }
+              if (!_gameState.hasStarted) return _buildWelcomeScreen();
 
               // --- GAME OVER SCREEN ---
-              if (_gameState.isGameOver) {
-                return _buildGameOverScreen();
-              }
+              if (_gameState.isGameOver) return _buildGameOverScreen();
 
               // --- ACTIVE GAMEPLAY SCREEN ---
               return Column(
@@ -178,18 +180,13 @@ class _MainGameScreenState extends State<MainGameScreen> {
                   Expanded(
                     child: SingleChildScrollView(
                       physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24.0,
-                        vertical: 16.0,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
+                          // Status Bar (Word count & Score)
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 12,
-                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                             decoration: BoxDecoration(
                               color: Colors.grey.shade50,
                               borderRadius: BorderRadius.circular(16),
@@ -200,19 +197,11 @@ class _MainGameScreenState extends State<MainGameScreen> {
                               children: [
                                 Text(
                                   'Word ${_gameState.currentWordNumber} of ${_gameState.totalWords}',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.grey.shade600,
-                                  ),
+                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey.shade600),
                                 ),
                                 Text(
                                   'Score: ${_gameState.score}',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: _primaryColor,
-                                  ),
+                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: _primaryColor),
                                 ),
                               ],
                             ),
@@ -220,23 +209,20 @@ class _MainGameScreenState extends State<MainGameScreen> {
                           const SizedBox(height: 24),
                           _buildLivesIndicator(),
                           const SizedBox(height: 60),
+
+                          // Tombol speaker (play word)
                           GestureDetector(
                             onTap: () => _gameState.playCurrentWord(),
                             child: Container(
-                              width: 120,
-                              height: 120,
+                              width: 120, height: 120,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 color: _primaryColor.withOpacity(0.05),
-                                border: Border.all(
-                                  color: _primaryColor.withOpacity(0.2),
-                                  width: 2,
-                                ),
+                                border: Border.all(color: _primaryColor.withOpacity(0.2), width: 2),
                               ),
                               child: Center(
                                 child: Container(
-                                  width: 80,
-                                  height: 80,
+                                  width: 80, height: 80,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     color: _primaryColor,
@@ -248,11 +234,7 @@ class _MainGameScreenState extends State<MainGameScreen> {
                                       ),
                                     ],
                                   ),
-                                  child: const Icon(
-                                    Icons.volume_up_rounded,
-                                    size: 40,
-                                    color: Colors.white,
-                                  ),
+                                  child: const Icon(Icons.volume_up_rounded, size: 40, color: Colors.white),
                                 ),
                               ),
                             ),
@@ -260,38 +242,26 @@ class _MainGameScreenState extends State<MainGameScreen> {
                           const SizedBox(height: 24),
                           const Text(
                             'Tap to hear the word',
-                            style: TextStyle(
-                              color: Colors.grey,
-                              fontWeight: FontWeight.w500,
-                            ),
+                            style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w500),
                           ),
                           const SizedBox(height: 48),
+
+                          // Tombol Jury Assistance
                           ActionChip(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                            avatar: Icon(
-                              Icons.help_outline_rounded,
-                              size: 20,
-                              color: _primaryColor,
-                            ),
-                            label: const Text(
-                              'Jury Assistance',
-                              style: TextStyle(fontWeight: FontWeight.w600),
-                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            avatar: Icon(Icons.help_outline_rounded, size: 20, color: _primaryColor),
+                            label: const Text('Jury Assistance', style: TextStyle(fontWeight: FontWeight.w600)),
                             onPressed: _showJuryAssistanceMenu,
                             backgroundColor: Colors.white,
                             side: BorderSide(color: Colors.grey.shade300),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                           ),
                         ],
                       ),
                     ),
                   ),
 
+                  // Bottom Input Area
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -304,9 +274,7 @@ class _MainGameScreenState extends State<MainGameScreen> {
                       ],
                     ),
                     padding: EdgeInsets.only(
-                      left: 24,
-                      right: 24,
-                      top: 20,
+                      left: 24, right: 24, top: 20,
                       bottom: MediaQuery.of(context).viewInsets.bottom > 0
                           ? MediaQuery.of(context).viewInsets.bottom + 16
                           : MediaQuery.of(context).padding.bottom + 24,
@@ -319,6 +287,7 @@ class _MainGameScreenState extends State<MainGameScreen> {
               );
             },
           ),
+          // Flash overlay (hijau/merah) saat jawab benar/salah
           IgnorePointer(
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
@@ -343,18 +312,10 @@ class _MainGameScreenState extends State<MainGameScreen> {
           textInputAction: TextInputAction.done,
           onSubmitted: (_) => _submitAnswer(),
           textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontSize: 28,
-            letterSpacing: 4.0,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 28, letterSpacing: 4.0, fontWeight: FontWeight.bold),
           decoration: InputDecoration(
             hintText: 'Type here...',
-            hintStyle: TextStyle(
-              letterSpacing: 0,
-              color: Colors.grey.shade300,
-              fontSize: 18,
-            ),
+            hintStyle: TextStyle(letterSpacing: 0, color: Colors.grey.shade300, fontSize: 18),
             contentPadding: const EdgeInsets.symmetric(vertical: 20),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
@@ -369,24 +330,10 @@ class _MainGameScreenState extends State<MainGameScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        SizedBox(
-          width: double.infinity,
-          height: 60,
-          child: ElevatedButton(
-            onPressed: _submitAnswer,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _primaryColor,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-              elevation: 0,
-            ),
-            child: const Text(
-              'Submit Spelling',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-          ),
+        _buildPrimaryButton(
+          label: 'Submit Spelling',
+          icon: Icons.check_rounded,
+          onPressed: _submitAnswer,
         ),
       ],
     );
@@ -405,49 +352,21 @@ class _MainGameScreenState extends State<MainGameScreen> {
           ),
           child: Column(
             children: [
-              Icon(
-                Icons.error_outline_rounded,
-                color: Colors.red.shade400,
-                size: 32,
-              ),
+              Icon(Icons.error_outline_rounded, color: Colors.red.shade400, size: 32),
               const SizedBox(height: 8),
               Text(
                 'Incorrect Spelling',
-                style: TextStyle(
-                  color: Colors.red.shade700,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(color: Colors.red.shade700, fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ],
           ),
         ),
         const SizedBox(height: 16),
-        SizedBox(
-          width: double.infinity,
-          height: 60,
-          child: ElevatedButton(
-            onPressed: () => _gameState.advanceToNextWord(),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.black87,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-              elevation: 0,
-            ),
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Next Word',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(width: 8),
-                Icon(Icons.arrow_forward_rounded, size: 20),
-              ],
-            ),
-          ),
+        _buildPrimaryButton(
+          label: 'Next Word',
+          icon: Icons.arrow_forward_rounded,
+          onPressed: () => _gameState.advanceToNextWord(),
+          backgroundColor: Colors.black87,
         ),
       ],
     );
@@ -461,44 +380,30 @@ class _MainGameScreenState extends State<MainGameScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
+            // Logo dengan tile dekoratif
             Stack(
               alignment: Alignment.center,
               children: [
                 Container(
-                  width: 140,
-                  height: 140,
-                  decoration: BoxDecoration(
-                    color: _primaryColor,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.mic_rounded,
-                    size: 60,
-                    color: Colors.white,
-                  ),
+                  width: 140, height: 140,
+                  decoration: BoxDecoration(color: _primaryColor, shape: BoxShape.circle),
+                  child: const Icon(Icons.mic_rounded, size: 60, color: Colors.white),
                 ),
                 Positioned(top: 10, right: 0, child: _buildDecorativeTile("S")),
-                Positioned(
-                  bottom: 10,
-                  left: 0,
-                  child: _buildDecorativeTile("B"),
-                ),
+                Positioned(bottom: 10, left: 0, child: _buildDecorativeTile("B")),
               ],
             ),
 
-            Column(
+            // Judul dan deskripsi
+            const Column(
               children: [
-                const Text(
+                Text(
                   'Welcome to\nSpellify',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 32,
-                    height: 1.2,
-                    fontWeight: FontWeight.w900,
-                  ),
+                  style: TextStyle(fontSize: 32, height: 1.2, fontWeight: FontWeight.w900),
                 ),
-                const SizedBox(height: 12),
-                const Text(
+                SizedBox(height: 12),
+                Text(
                   'Test your spelling skills and\nbecome the ultimate champion!',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.grey, fontSize: 16),
@@ -506,6 +411,7 @@ class _MainGameScreenState extends State<MainGameScreen> {
               ],
             ),
 
+            // Info bar: Listen → Spell → Win
             Container(
               padding: const EdgeInsets.symmetric(vertical: 24.0),
               decoration: BoxDecoration(
@@ -522,33 +428,11 @@ class _MainGameScreenState extends State<MainGameScreen> {
               ),
             ),
 
-            SizedBox(
-              width: double.infinity,
-              height: 60,
-              child: ElevatedButton(
-                onPressed: () => _gameState.startGame(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _primaryColor,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Start Game',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(width: 12),
-                    Icon(Icons.play_arrow_rounded, size: 24),
-                  ],
-                ),
-              ),
+            // Tombol Start Game
+            _buildPrimaryButton(
+              label: 'Start Game',
+              icon: Icons.play_arrow_rounded,
+              onPressed: () => _gameState.startGame(),
             ),
           ],
         ),
@@ -556,9 +440,8 @@ class _MainGameScreenState extends State<MainGameScreen> {
     );
   }
 
-  // --- KOMPONEN GAME OVER SCREEN (DIPERBARUI DINAMIS) ---
+  // --- KOMPONEN GAME OVER SCREEN ---
   Widget _buildGameOverScreen() {
-    // Cek apakah pengguna menang (masih punya nyawa) atau kalah (nyawa habis)
     bool isVictory = _gameState.lives > 0;
 
     return Center(
@@ -567,15 +450,12 @@ class _MainGameScreenState extends State<MainGameScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Ikon Dinamis: Piala Emas jika menang, Hati Patah Merah jika kalah
             Icon(
               isVictory ? Icons.emoji_events_rounded : Icons.heart_broken,
               size: 100,
               color: isVictory ? const Color(0xFFFFD54F) : Colors.red.shade400,
             ),
             const SizedBox(height: 24),
-
-            // Teks Dinamis: Champion vs Game Over
             Text(
               isVictory ? 'Champion!' : 'Game Over',
               style: TextStyle(
@@ -585,45 +465,15 @@ class _MainGameScreenState extends State<MainGameScreen> {
               ),
             ),
             const SizedBox(height: 16),
-
             Text(
               'Final Score: ${_gameState.score}',
-              style: TextStyle(
-                fontSize: 20,
-                color: Colors.grey.shade700,
-                fontWeight: FontWeight.w600,
-              ),
+              style: TextStyle(fontSize: 20, color: Colors.grey.shade700, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 48),
-
-            // Tombol Play Again
-            SizedBox(
-              width: double.infinity,
-              height: 60,
-              child: ElevatedButton(
-                onPressed: () => _gameState.restartGame(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _primaryColor,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Play Again',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(width: 12),
-                    Icon(Icons.replay_rounded, size: 24),
-                  ],
-                ),
-              ),
+            _buildPrimaryButton(
+              label: 'Play Again',
+              icon: Icons.replay_rounded,
+              onPressed: () => _gameState.restartGame(),
             ),
           ],
         ),
@@ -633,27 +483,18 @@ class _MainGameScreenState extends State<MainGameScreen> {
 
   Widget _buildDecorativeTile(String letter) {
     return Container(
-      width: 40,
-      height: 40,
+      width: 40, height: 40,
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: const Color(0xFFFFD54F),
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
+          BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 4)),
         ],
       ),
       child: Text(
         letter,
-        style: const TextStyle(
-          fontSize: 22,
-          fontWeight: FontWeight.w900,
-          color: Colors.black87,
-        ),
+        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.black87),
       ),
     );
   }
@@ -665,12 +506,7 @@ class _MainGameScreenState extends State<MainGameScreen> {
         const SizedBox(height: 8),
         Text(
           label,
-          style: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 1.0,
-            color: Colors.black54,
-          ),
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 1.0, color: Colors.black54),
         ),
       ],
     );

@@ -10,12 +10,12 @@ class GameState extends ChangeNotifier {
   int _currentWordIndex = 0;
   int _lives = 3;
   int _score = 0;
-
   bool _isLoading = false;
   bool _isGameOver = false;
   bool _hasStarted = false;
   bool _isWaitingForNext = false;
 
+  // Getters untuk akses state dari UI
   int get lives => _lives;
   int get score => _score;
   bool get isLoading => _isLoading;
@@ -30,8 +30,6 @@ class GameState extends ChangeNotifier {
     return _sessionWords[_currentWordIndex];
   }
 
-  GameState();
-
   Future<void> startGame() async {
     _isLoading = true;
     notifyListeners();
@@ -43,9 +41,7 @@ class GameState extends ChangeNotifier {
     _hasStarted = true;
     notifyListeners();
 
-    if (_sessionWords.isNotEmpty) {
-      await playCurrentWord();
-    }
+    if (_sessionWords.isNotEmpty) await playCurrentWord();
   }
 
   Future<void> playCurrentWord() async {
@@ -53,13 +49,15 @@ class GameState extends ChangeNotifier {
   }
 
   Future<void> playDefinition() async {
-    if (currentWord != null)
+    if (currentWord != null) {
       await _ttsService.speak("The definition is: ${currentWord!.definition}");
+    }
   }
 
   Future<void> playContext() async {
-    if (currentWord != null)
+    if (currentWord != null) {
       await _ttsService.speak("Listen to the context: ${currentWord!.context}");
+    }
   }
 
   Future<bool> checkSpelling(String input) async {
@@ -74,21 +72,14 @@ class GameState extends ChangeNotifier {
       if (_currentWordIndex < _sessionWords.length - 1) {
         _currentWordIndex++;
         notifyListeners();
-
-        // PERBAIKAN: Menghapus keyword 'await' dan menggunakan Future.delayed
-        // sebagai 'Fire-and-Forget'. Fungsi tidak akan tertahan di sini dan
-        // akan langsung me-return 'true' ke UI seketika!
-        Future.delayed(const Duration(milliseconds: 1000), () {
-          playCurrentWord();
-        });
+        // Fire-and-Forget: langsung return true tanpa menunggu audio selesai
+        Future.delayed(const Duration(milliseconds: 1000), () => playCurrentWord());
       } else {
         _isGameOver = true;
         notifyListeners();
-        _ttsService.speak(
-          "Congratulations! You are the Spelling Bee Champion!",
-        );
+        _ttsService.speak("Congratulations! You are the Spelling Bee Champion!");
       }
-      return true; // Eksekusi langsung ke sini untuk memicu kedip hijau UI
+      return true;
     } else {
       _lives--;
 
@@ -99,53 +90,40 @@ class GameState extends ChangeNotifier {
       } else {
         _isWaitingForNext = true;
         notifyListeners();
-
-        // PERBAIKAN: Menghapus keyword 'await'.
-        // Juri akan mengeja di background, sementara kode langsung turun
-        // ke baris berikutnya untuk me-return 'false' ke UI seketika!
+        // Fire-and-Forget: juri mengeja di background, UI langsung responsif
         _ttsService.spellIncorrectWord(currentWord!.word);
       }
-      return false; // Eksekusi langsung ke sini untuk memicu kedip merah UI
+      return false;
     }
   }
 
   Future<void> advanceToNextWord() async {
-    if (_isWaitingForNext) {
-      _isWaitingForNext = false;
+    if (!_isWaitingForNext) return;
+    _isWaitingForNext = false;
 
-      // PERBAIKAN: Hentikan suara paksa jika pengguna menekan tombol
-      // "Next Word" saat juri masih sibuk mengeja.
-      await _ttsService.stop();
+    // Hentikan suara paksa jika juri masih mengeja
+    await _ttsService.stop();
 
-      if (_currentWordIndex < _sessionWords.length - 1) {
-        _currentWordIndex++;
-        notifyListeners();
-        await playCurrentWord();
-      }
+    if (_currentWordIndex < _sessionWords.length - 1) {
+      _currentWordIndex++;
+      notifyListeners();
+      await playCurrentWord();
     }
   }
 
   Future<void> restartGame() async {
-    await _ttsService.stop(); // Pastikan tidak ada sisa suara sebelum restart
+    await _ttsService.stop();
     _currentWordIndex = 0;
     _lives = 3;
     _score = 0;
     _isGameOver = false;
     _isWaitingForNext = false;
-
     await startGame();
   }
 
+  // Skor berdasarkan tingkat kesulitan kata (Demo Mode: 4 kata)
   void _calculateScore() {
-    // Mode Demo (4 Kata)
-    if (_currentWordIndex == 0) {
-      _score += 100;
-    } else if (_currentWordIndex == 1) {
-      _score += 200;
-    } else if (_currentWordIndex == 2) {
-      _score += 300;
-    } else {
-      _score += 500;
-    }
+    const scores = [100, 200, 300, 500];
+    _score += scores[_currentWordIndex.clamp(0, scores.length - 1)];
   }
 }
