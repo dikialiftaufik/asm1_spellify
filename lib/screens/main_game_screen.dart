@@ -53,7 +53,9 @@ class _MainGameScreenState extends State<MainGameScreen> {
           width: 32,
           height: 6,
           decoration: BoxDecoration(
-            color: index < _gameState.lives ? _primaryColor : Colors.grey.shade300,
+            color: index < _gameState.lives
+                ? _primaryColor
+                : Colors.grey.shade300,
             borderRadius: BorderRadius.circular(4),
           ),
         ),
@@ -64,7 +66,8 @@ class _MainGameScreenState extends State<MainGameScreen> {
   // Helper: Membuat item ListTile untuk menu Jury Assistance
   Widget _buildJuryTile(IconData icon, String title, VoidCallback onTap) {
     return ListTile(
-      contentPadding: EdgeInsets.zero,
+      // Padding horizontal agar teks tidak menempel border Container
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12),
       leading: CircleAvatar(
         backgroundColor: _primaryColor.withOpacity(0.1),
         child: Icon(icon, color: _primaryColor),
@@ -83,12 +86,16 @@ class _MainGameScreenState extends State<MainGameScreen> {
       builder: (context) {
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 24.0),
+            padding: const EdgeInsets.symmetric(
+              vertical: 24.0,
+              horizontal: 24.0,
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: 40, height: 4,
+                  width: 40,
+                  height: 4,
                   margin: const EdgeInsets.only(bottom: 24),
                   decoration: BoxDecoration(
                     color: Colors.grey.shade300,
@@ -100,14 +107,50 @@ class _MainGameScreenState extends State<MainGameScreen> {
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 24),
-                _buildJuryTile(Icons.menu_book_rounded, 'May I have the definition?', () {
-                  Navigator.pop(context);
-                  _gameState.playDefinition();
-                }),
-                _buildJuryTile(Icons.chat_bubble_rounded, 'Can you use it in a sentence?', () {
-                  Navigator.pop(context);
-                  _gameState.playContext();
-                }),
+
+                // --- Tile Definition ---
+                Container(
+                  decoration: BoxDecoration(
+                    // Latar belakang sangat transparan (5%)
+                    color: _primaryColor.withOpacity(0.05),
+                    // Border dengan warna utama yang sedikit pudar (30%)
+                    border: Border.all(
+                      color: _primaryColor.withOpacity(0.3),
+                      width: 1.5,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: _buildJuryTile(
+                    Icons.menu_book_rounded,
+                    'May I have the definition?',
+                    () {
+                      Navigator.pop(context);
+                      _gameState.playDefinition();
+                    },
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                // --- Tile Sentence ---
+                Container(
+                  decoration: BoxDecoration(
+                    color: _primaryColor.withOpacity(0.05),
+                    border: Border.all(
+                      color: _primaryColor.withOpacity(0.3),
+                      width: 1.5,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: _buildJuryTile(
+                    Icons.chat_bubble_rounded,
+                    'Can you use it in a sentence?',
+                    () {
+                      Navigator.pop(context);
+                      _gameState.playContext();
+                    },
+                  ),
+                ),
               ],
             ),
           ),
@@ -131,13 +174,18 @@ class _MainGameScreenState extends State<MainGameScreen> {
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor ?? _primaryColor,
           foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
           elevation: 0,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(label, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(
+              label,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(width: 12),
             Icon(icon, size: 24),
           ],
@@ -153,7 +201,11 @@ class _MainGameScreenState extends State<MainGameScreen> {
       appBar: AppBar(
         title: const Text(
           'Spellify',
-          style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.0, color: Colors.black87),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.0,
+            color: Colors.black87,
+          ),
         ),
         centerTitle: true,
         elevation: 0,
@@ -165,7 +217,9 @@ class _MainGameScreenState extends State<MainGameScreen> {
             listenable: _gameState,
             builder: (context, child) {
               if (_gameState.isLoading) {
-                return Center(child: CircularProgressIndicator(color: _primaryColor));
+                return Center(
+                  child: CircularProgressIndicator(color: _primaryColor),
+                );
               }
 
               // --- WELCOME SCREEN ---
@@ -180,13 +234,19 @@ class _MainGameScreenState extends State<MainGameScreen> {
                   Expanded(
                     child: SingleChildScrollView(
                       physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24.0,
+                        vertical: 16.0,
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           // Status Bar (Word count & Score)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 12,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.grey.shade50,
                               borderRadius: BorderRadius.circular(16),
@@ -197,11 +257,19 @@ class _MainGameScreenState extends State<MainGameScreen> {
                               children: [
                                 Text(
                                   'Word ${_gameState.currentWordNumber} of ${_gameState.totalWords}',
-                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey.shade600),
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.grey.shade600,
+                                  ),
                                 ),
                                 Text(
                                   'Score: ${_gameState.score}',
-                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: _primaryColor),
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: _primaryColor,
+                                  ),
                                 ),
                               ],
                             ),
@@ -214,15 +282,20 @@ class _MainGameScreenState extends State<MainGameScreen> {
                           GestureDetector(
                             onTap: () => _gameState.playCurrentWord(),
                             child: Container(
-                              width: 120, height: 120,
+                              width: 120,
+                              height: 120,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 color: _primaryColor.withOpacity(0.05),
-                                border: Border.all(color: _primaryColor.withOpacity(0.2), width: 2),
+                                border: Border.all(
+                                  color: _primaryColor.withOpacity(0.2),
+                                  width: 2,
+                                ),
                               ),
                               child: Center(
                                 child: Container(
-                                  width: 80, height: 80,
+                                  width: 80,
+                                  height: 80,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     color: _primaryColor,
@@ -234,7 +307,11 @@ class _MainGameScreenState extends State<MainGameScreen> {
                                       ),
                                     ],
                                   ),
-                                  child: const Icon(Icons.volume_up_rounded, size: 40, color: Colors.white),
+                                  child: const Icon(
+                                    Icons.volume_up_rounded,
+                                    size: 40,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
                             ),
@@ -242,19 +319,35 @@ class _MainGameScreenState extends State<MainGameScreen> {
                           const SizedBox(height: 24),
                           const Text(
                             'Tap to hear the word',
-                            style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w500),
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                           const SizedBox(height: 48),
 
                           // Tombol Jury Assistance
                           ActionChip(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                            avatar: Icon(Icons.help_outline_rounded, size: 20, color: _primaryColor),
-                            label: const Text('Jury Assistance', style: TextStyle(fontWeight: FontWeight.w600)),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            avatar: Icon(
+                              Icons.help_outline_rounded,
+                              size: 20,
+                              color: _primaryColor,
+                            ),
+                            label: const Text(
+                              'Jury Assistance',
+                              style: TextStyle(fontWeight: FontWeight.w600),
+                            ),
                             onPressed: _showJuryAssistanceMenu,
                             backgroundColor: Colors.white,
-                            side: BorderSide(color: Colors.grey.shade300),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                            // Gunakan _primaryColor agar border terlihat jelas di latar putih
+                            side: BorderSide(color: _primaryColor),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
                           ),
                         ],
                       ),
@@ -274,7 +367,9 @@ class _MainGameScreenState extends State<MainGameScreen> {
                       ],
                     ),
                     padding: EdgeInsets.only(
-                      left: 24, right: 24, top: 20,
+                      left: 24,
+                      right: 24,
+                      top: 20,
                       bottom: MediaQuery.of(context).viewInsets.bottom > 0
                           ? MediaQuery.of(context).viewInsets.bottom + 16
                           : MediaQuery.of(context).padding.bottom + 24,
@@ -312,10 +407,18 @@ class _MainGameScreenState extends State<MainGameScreen> {
           textInputAction: TextInputAction.done,
           onSubmitted: (_) => _submitAnswer(),
           textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 28, letterSpacing: 4.0, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            fontSize: 28,
+            letterSpacing: 4.0,
+            fontWeight: FontWeight.bold,
+          ),
           decoration: InputDecoration(
             hintText: 'Type here...',
-            hintStyle: TextStyle(letterSpacing: 0, color: Colors.grey.shade300, fontSize: 18),
+            hintStyle: TextStyle(
+              letterSpacing: 0,
+              color: Colors.grey.shade300,
+              fontSize: 18,
+            ),
             contentPadding: const EdgeInsets.symmetric(vertical: 20),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
@@ -352,11 +455,19 @@ class _MainGameScreenState extends State<MainGameScreen> {
           ),
           child: Column(
             children: [
-              Icon(Icons.error_outline_rounded, color: Colors.red.shade400, size: 32),
+              Icon(
+                Icons.error_outline_rounded,
+                color: Colors.red.shade400,
+                size: 32,
+              ),
               const SizedBox(height: 8),
               Text(
                 'Incorrect Spelling',
-                style: TextStyle(color: Colors.red.shade700, fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.red.shade700,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
@@ -385,12 +496,24 @@ class _MainGameScreenState extends State<MainGameScreen> {
               alignment: Alignment.center,
               children: [
                 Container(
-                  width: 140, height: 140,
-                  decoration: BoxDecoration(color: _primaryColor, shape: BoxShape.circle),
-                  child: const Icon(Icons.mic_rounded, size: 60, color: Colors.white),
+                  width: 140,
+                  height: 140,
+                  decoration: BoxDecoration(
+                    color: _primaryColor,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.mic_rounded,
+                    size: 60,
+                    color: Colors.white,
+                  ),
                 ),
                 Positioned(top: 10, right: 0, child: _buildDecorativeTile("S")),
-                Positioned(bottom: 10, left: 0, child: _buildDecorativeTile("B")),
+                Positioned(
+                  bottom: 10,
+                  left: 0,
+                  child: _buildDecorativeTile("B"),
+                ),
               ],
             ),
 
@@ -400,7 +523,11 @@ class _MainGameScreenState extends State<MainGameScreen> {
                 Text(
                   'Welcome to\nSpellify',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 32, height: 1.2, fontWeight: FontWeight.w900),
+                  style: TextStyle(
+                    fontSize: 32,
+                    height: 1.2,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
                 SizedBox(height: 12),
                 Text(
@@ -467,7 +594,11 @@ class _MainGameScreenState extends State<MainGameScreen> {
             const SizedBox(height: 16),
             Text(
               'Final Score: ${_gameState.score}',
-              style: TextStyle(fontSize: 20, color: Colors.grey.shade700, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                fontSize: 20,
+                color: Colors.grey.shade700,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const SizedBox(height: 48),
             _buildPrimaryButton(
@@ -483,18 +614,27 @@ class _MainGameScreenState extends State<MainGameScreen> {
 
   Widget _buildDecorativeTile(String letter) {
     return Container(
-      width: 40, height: 40,
+      width: 40,
+      height: 40,
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: const Color(0xFFFFD54F),
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 4)),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
       child: Text(
         letter,
-        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.black87),
+        style: const TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.w900,
+          color: Colors.black87,
+        ),
       ),
     );
   }
@@ -506,7 +646,12 @@ class _MainGameScreenState extends State<MainGameScreen> {
         const SizedBox(height: 8),
         Text(
           label,
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 1.0, color: Colors.black54),
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 1.0,
+            color: Colors.black54,
+          ),
         ),
       ],
     );
