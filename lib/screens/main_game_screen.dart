@@ -474,9 +474,9 @@ class _MainGameScreenState extends State<MainGameScreen> {
         ),
         const SizedBox(height: 16),
         _buildPrimaryButton(
-          label: 'Next Word',
-          icon: Icons.arrow_forward_rounded,
-          onPressed: () => _gameState.advanceToNextWord(),
+          label: 'Try Again',
+          icon: Icons.refresh_rounded,
+          onPressed: () => _gameState.retryCurrentWord(),
           backgroundColor: Colors.black87,
         ),
       ],

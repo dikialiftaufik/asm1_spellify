@@ -97,18 +97,17 @@ class GameState extends ChangeNotifier {
     }
   }
 
-  Future<void> advanceToNextWord() async {
+  // Pemain salah menjawab → beri kesempatan coba lagi kata yang SAMA
+  Future<void> retryCurrentWord() async {
     if (!_isWaitingForNext) return;
     _isWaitingForNext = false;
 
-    // Hentikan suara paksa jika juri masih mengeja
+    // Hentikan suara jika juri masih mengeja
     await _ttsService.stop();
 
-    if (_currentWordIndex < _sessionWords.length - 1) {
-      _currentWordIndex++;
-      notifyListeners();
-      await playCurrentWord();
-    }
+    // Tidak pindah kata — tetap di kata yang sama agar pemain bisa coba lagi
+    notifyListeners();
+    await playCurrentWord();
   }
 
   Future<void> restartGame() async {
